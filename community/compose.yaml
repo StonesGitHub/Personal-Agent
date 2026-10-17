@@ -1,0 +1,27 @@
+name: mozhi
+services:
+  discovery:
+    build: .
+    image: mozhi-service:${MOZHI_IMAGE_TAG:-local}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${MOZHI_LOCAL_PORT:-8090}:8080"
+    environment:
+      MOZHI_MODERATOR_TOKEN: "${MOZHI_MODERATOR_TOKEN:?Run scripts/init-env.py}"
+      MOZHI_WEB_TOKENS: "${MOZHI_WEB_TOKENS:-}"
+      MOZHI_SEARCH_PROVIDER: "${MOZHI_SEARCH_PROVIDER:-duckduckgo}"
+      BRAVE_SEARCH_API_KEY: "${BRAVE_SEARCH_API_KEY:-}"
+    volumes:
+      - discovery-data:/data
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 512m
+    cpus: 1.0
+    pids_limit: 100
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+volumes:
+  discovery-data:

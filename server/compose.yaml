@@ -1,0 +1,50 @@
+name: mozhi-agent
+x-service: &service
+  build: .
+  image: mozhi-agent:${MOZHI_IMAGE_TAG:-local}
+  env_file: .env
+  restart: unless-stopped
+  volumes: [agent-data:/data]
+  read_only: true
+  tmpfs: [/tmp]
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  mem_limit: 512m
+  pids_limit: 100
+  logging:
+    driver: json-file
+    options: {max-size: "10m", max-file: "3"}
+services:
+  api:
+    <<: *service
+    ports: ["127.0.0.1:${MOZHI_AGENT_PORT:-8091}:8080"]
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health',timeout=3)"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+  admin-api:
+    <<: *service
+    command: [uvicorn, "mozhi_service.api:create_admin_api", --factory, --host, "0.0.0.0", --port, "8081", --workers, "1", --no-access-log, --no-proxy-headers]
+    ports: ["127.0.0.1:${MOZHI_ADMIN_API_PORT:-8092}:8081"]
+    networks: [management]
+    healthcheck:
+      test: [CMD, python, -c, "import os,urllib.request; urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:8081/admin/v1/overview',headers={'Authorization':'Bearer '+os.environ['MOZHI_ADMIN_API_TOKEN']}),timeout=3)"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+  worker:
+    <<: *service
+    command: [python, -m, mozhi_service.worker]
+    stop_grace_period: 15s
+    healthcheck:
+      test: [CMD, python, -c, "import sqlite3,time; c=sqlite3.connect('/data/agent.sqlite3'); r=c.execute('SELECT heartbeat FROM worker_status WHERE id=1').fetchone(); assert r and time.time()*1000-r[0]<20000"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+volumes:
+  agent-data:
+networks:
+  management:
+    name: mozhi-agent-management
+    internal: true

@@ -1,0 +1,15 @@
+{
+    email {$MOZHI_ACME_EMAIL}
+}
+{$MOZHI_DOMAIN} {
+    request_body {
+        max_size 150KB
+    }
+    header {
+        X-Content-Type-Options nosniff
+        Referrer-Policy no-referrer
+        Strict-Transport-Security "max-age=31536000"
+    }
+    reverse_proxy discovery:8080
+    # Access logging is intentionally not enabled: requests may identify private shares.
+}

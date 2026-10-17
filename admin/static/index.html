@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>墨知 · 管理台</title><link rel="stylesheet" href="/assets/style.css"><script src="/assets/app.js" defer></script></head>
+<body>
+  <section id="login-screen" class="login-screen">
+    <div class="login-story"><div class="brand"><span class="mark">墨</span>墨知 <span class="brand-sub">管理台</span></div><p class="eyebrow">MOZHI / OPERATIONS</p><h1>让每一次思考，<br>走向行动。</h1><p>管理用户、配置能力、关注任务进展。<br>把日常运营放在一个清晰的地方。</p><div class="story-lines" aria-hidden="true"><span>理解</span><i></i><span>行动</span><i></i><span>完成</span></div><small>墨知 · 个人 Agent</small></div>
+    <form id="login-form" class="login-card"><p class="eyebrow">WELCOME BACK</p><h2>登录管理台</h2><p class="muted">使用管理员账号继续</p><label>用户名<input name="username" autocomplete="username" required maxlength="100" value="admin"></label><label>密码<input name="password" type="password" autocomplete="current-password" required maxlength="512"></label><p id="login-error" class="error" role="alert"></p><button class="primary" type="submit">登录 <span aria-hidden="true">↗</span></button><small class="muted">仅限授权管理员访问</small></form>
+  </section>
+  <div id="workspace" class="workspace" hidden>
+    <aside class="sidebar"><div class="brand"><span class="mark">墨</span>墨知 <span class="brand-sub">管理台</span></div><div class="workspace-label">工作空间</div><nav aria-label="管理导航"><button data-tab="users" class="selected"><span>◉</span>用户管理</button><button data-tab="runs"><span>▤</span>任务记录</button><button data-tab="config"><span>◇</span>Agent 配置</button><button data-tab="audit"><span>◷</span>操作记录</button></nav><div class="sidebar-foot"><span class="dot"></span> 独立管理工作空间<small>墨知 Agent · v0.6</small></div></aside>
+    <main><header class="topbar"><span id="breadcrumb">工作空间 / 用户管理</span><div><span id="admin-name">admin</span><button id="logout" class="text-button">退出登录</button></div></header>
+      <div class="main-content"><div class="page-heading"><div><p class="eyebrow">MOZHI CONSOLE</p><h1 id="page-title">用户管理</h1><p id="page-description" class="muted">为每一位用户配置合适的 Agent 能力。</p></div><button id="refresh" class="secondary">↻ 刷新</button></div>
+      <div id="global-error" class="error-banner" role="alert" hidden></div>
+      <div id="stats" class="stats"></div><section id="view" aria-live="polite"></section></div>
+    </main>
+  </div>
+  <dialog id="modal"><div class="modal-heading"><h2 id="modal-title"></h2><button id="close-modal" class="icon-button" aria-label="关闭弹窗">×</button></div><div id="modal-body"></div></dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
+</body></html>

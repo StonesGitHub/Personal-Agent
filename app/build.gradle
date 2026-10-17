@@ -1,0 +1,87 @@
+plugins { id 'com.android.application' }
+def previewSigning = ['MOZHI_PREVIEW_KEYSTORE', 'MOZHI_PREVIEW_STORE_PASSWORD', 'MOZHI_PREVIEW_KEY_ALIAS', 'MOZHI_PREVIEW_KEY_PASSWORD']
+def hasPreviewSigning = previewSigning.every { System.getenv(it) }
+if (gradle.startParameter.taskNames.any { it.toLowerCase().contains('preview') } && !hasPreviewSigning) {
+    throw new GradleException('Preview builds require all MOZHI_PREVIEW_* signing environment variables. See PREVIEW.md.')
+}
+def releaseSigning = ['MOZHI_RELEASE_KEYSTORE', 'MOZHI_RELEASE_STORE_PASSWORD', 'MOZHI_RELEASE_KEY_ALIAS', 'MOZHI_RELEASE_KEY_PASSWORD']
+def hasReleaseSigning = releaseSigning.every { System.getenv(it) }
+def requestsRelease = gradle.startParameter.taskNames.any { it.toLowerCase().contains('release') }
+if (requestsRelease) {
+    if (!hasReleaseSigning) throw new GradleException('Release builds require all MOZHI_RELEASE_* signing variables. See RELEASE.md.')
+
+}
+android {
+    namespace 'com.mozhi.assistant'
+    compileSdk 35
+    defaultConfig {
+        applicationId rootProject.findProperty('mozhiApplicationId') ?: 'com.mozhi.assistant'
+        minSdk 26
+        targetSdk 35
+        versionCode 17
+        versionName '0.9.0'
+        manifestPlaceholders = [appLabel: '墨知']
+        buildConfigField 'String', 'COMMUNITY_BASE_URL', groovy.json.JsonOutput.toJson(System.getenv('MOZHI_COMMUNITY_URL') ?: '')
+        testInstrumentationRunner 'android.test.InstrumentationTestRunner'
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17; coreLibraryDesugaringEnabled true }
+    buildFeatures { buildConfig true }
+    signingConfigs {
+        release {
+            if (hasReleaseSigning) {
+                storeFile rootProject.file(System.getenv('MOZHI_RELEASE_KEYSTORE'))
+                storePassword System.getenv('MOZHI_RELEASE_STORE_PASSWORD')
+                keyAlias System.getenv('MOZHI_RELEASE_KEY_ALIAS')
+                keyPassword System.getenv('MOZHI_RELEASE_KEY_PASSWORD')
+            }
+        }
+        preview {
+            if (hasPreviewSigning) {
+                storeFile file(System.getenv('MOZHI_PREVIEW_KEYSTORE'))
+                storePassword System.getenv('MOZHI_PREVIEW_STORE_PASSWORD')
+                keyAlias System.getenv('MOZHI_PREVIEW_KEY_ALIAS')
+                keyPassword System.getenv('MOZHI_PREVIEW_KEY_PASSWORD')
+            }
+        }
+    }
+    buildTypes {
+        // The CI debug APK is installable alongside production/preview without signature conflicts.
+        debug {
+            applicationIdSuffix '.dev'
+            manifestPlaceholders = [appLabel: '墨知测试版']
+        }
+        release { minifyEnabled false; signingConfig signingConfigs.release }
+        // Optional unsigned variants; each distributor supplies their own signing key.
+        account {
+            initWith release
+            applicationIdSuffix '.accounts'
+            manifestPlaceholders = [appLabel: '墨知账号版']
+            signingConfig null
+            matchingFallbacks = ['release']
+        }
+        migration {
+            initWith release
+            signingConfig null
+            matchingFallbacks = ['release']
+        }
+        preview {
+            initWith release
+            applicationIdSuffix '.preview'
+            versionNameSuffix '-preview'
+            manifestPlaceholders = [appLabel: '墨知预览版']
+            signingConfig signingConfigs.preview
+            matchingFallbacks = ['release']
+        }
+    }
+}
+dependencies {
+    implementation 'org.jsoup:jsoup:1.23.2'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
+    implementation 'io.noties.markwon:core:4.6.2'
+    implementation 'io.noties.markwon:ext-tables:4.6.2'
+    implementation 'io.noties.markwon:ext-strikethrough:4.6.2'
+    androidTestCompileOnly files("${android.sdkDirectory}/platforms/android-35/optional/android.test.base.jar", "${android.sdkDirectory}/platforms/android-35/optional/android.test.runner.jar")
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.json:json:20240303'
+}

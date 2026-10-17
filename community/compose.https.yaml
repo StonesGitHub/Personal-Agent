@@ -1,0 +1,19 @@
+services:
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443", "443:443/udp"]
+    environment:
+      MOZHI_DOMAIN: "${MOZHI_DOMAIN:?Set a domain before HTTPS deployment}"
+      MOZHI_ACME_EMAIL: "${MOZHI_ACME_EMAIL:?Set the certificate contact email}"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      discovery:
+        condition: service_healthy
+    security_opt: [no-new-privileges:true]
+volumes:
+  caddy-data:
+  caddy-config:

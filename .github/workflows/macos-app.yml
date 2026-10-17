@@ -1,0 +1,56 @@
+name: macOS app
+on:
+  push:
+    branches: ['main']
+    paths: ['macos/**', '.github/workflows/macos-app.yml']
+  pull_request:
+    paths: ['macos/**', '.github/workflows/macos-app.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: macos-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Renderer behavior and injection checks
+        run: node --test macos/Tests/core.test.cjs
+      - name: Native request policy
+        run: |
+          swiftc -swift-version 5 macos/Sources/Policy.swift macos/Tests/PolicyTests.swift -o "$RUNNER_TEMP/policy-tests"
+          "$RUNNER_TEMP/policy-tests"
+      - name: Build universal app and disk image
+        run: bash macos/scripts/build.sh
+      - name: Verify bundle architectures and signature
+        run: |
+          lipo 'macos/build/墨知.app/Contents/MacOS/Mozhi' -verify_arch arm64 x86_64
+          codesign --verify --deep --strict 'macos/build/墨知.app'
+          hdiutil verify macos/build/mozhi-mac-0.2.0-universal.dmg
+      - name: Launch actual app and verify native WebKit bridge
+        env:
+          MOZHI_MAC_SMOKE_SNAPSHOT: ${{ github.workspace }}/macos/build/native-home.png
+        run: 'macos/build/墨知.app/Contents/MacOS/Mozhi --smoke-test'
+      - name: Verify desktop interactions and recovery
+        env:
+          MOZHI_TEST_CHROME: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+        run: |
+          npm install --prefix "$RUNNER_TEMP/mac-ui" --no-audit --no-fund playwright@1.62.1
+          NODE_PATH="$RUNNER_TEMP/mac-ui/node_modules" node macos/Tests/ui.cjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mozhi-mac-0.2.0-universal
+          path: |
+            macos/build/mozhi-mac-0.2.0-universal.zip
+            macos/build/mozhi-mac-0.2.0-universal.dmg
+            macos/build/SHA256SUMS.txt
+            macos/build/native-home.png
+            macos/test-results/*.png
+          if-no-files-found: error
+          retention-days: 14

@@ -1,0 +1,18 @@
+# Standalone deployment on a different host. Use this file alone with -f.
+name: mozhi-admin
+services:
+  admin-web:
+    build: .
+    image: mozhi-admin:${MOZHI_ADMIN_IMAGE_TAG:-local}
+    restart: unless-stopped
+    env_file: .env
+    ports: ["127.0.0.1:${MOZHI_ADMIN_PORT:-8093}:8080"]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 256m
+    pids_limit: 100
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+  <title>墨知</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="core.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <aside id="sidebar">
+    <div class="brand"><img src="motuan.png" alt="墨知小墨团"><div><b>墨知</b><span>陪你想清楚，再做决定</span></div><small>Mac</small></div>
+    <button id="new-chat" class="new-chat"><span>＋</span> 新建对话 <kbd>⌘ N</kbd></button>
+    <nav id="nav" aria-label="主导航"></nav>
+    <div class="history-label">最近对话 <span id="chat-count">0</span></div>
+    <input id="history-search" type="search" placeholder="搜索本机对话" aria-label="搜索本机对话">
+    <div id="history"></div>
+    <button id="account" class="account"><span class="avatar">墨</span><span><b id="account-name">连接墨知</b><small id="account-status">从这里开始</small></span><span>⚙</span></button>
+  </aside>
+  <main>
+    <header><div><h1 id="page-title">墨聊</h1><span id="page-subtitle">留一点空间，给正在发生的生活</span></div><div class="header-actions"><span id="connection" class="connection">未连接</span><button id="remote-runs" class="icon-button" title="服务端任务" aria-label="服务端任务"></button><button id="export-chat" class="icon-button" title="导出当前对话" aria-label="导出当前对话"></button><button id="delete-chat" class="icon-button" title="删除本机对话" aria-label="删除本机对话"></button></div></header>
+    <div id="error-banner" role="alert" hidden></div>
+    <section id="content" aria-label="页面内容"></section>
+    <section id="composer-section">
+      <div id="run-bar" aria-live="polite"></div>
+      <div class="composer"><div id="attachment-list"></div><textarea id="prompt" rows="2" placeholder="说说你正在想的事…" aria-label="发送给墨知的消息" maxlength="20000"></textarea><div class="composer-bottom"><div><button id="attach" class="icon-button" title="添加 Word、Excel 或图片" aria-label="添加附件"></button><button id="web-toggle" class="soft-button"></button><span id="upload-state"></span></div><div><span class="key-hint">⌘ ↵ 发送</span><button id="send" class="send-button" aria-label="发送消息"></button></div></div></div>
+      <p class="composer-note">任务提交后在服务端执行 · 文件与图片每份最多 8 MiB</p>
+    </section>
+  </main>
+  <dialog id="modal"><div id="modal-content"></div></dialog>
+  <div id="toast" role="status" hidden></div>
+</body>
+</html>
